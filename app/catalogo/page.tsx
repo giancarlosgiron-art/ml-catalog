@@ -1,7 +1,8 @@
 "use client";
 
+import { Suspense } from "react";
 import { useState, useEffect, useCallback } from "react";
-import { useSearchParams, useRouter } from "next/navigation";
+import { useSearchParams } from "next/navigation";
 import { motion } from "framer-motion";
 import { fetchProducts, fetchCategories } from "@/lib/api";
 import { Product, Category, ProductFilters } from "@/lib/types";
@@ -16,9 +17,8 @@ const defaultFilters: ProductFilters = {
   country: "",
 };
 
-export default function CatalogoPage() {
+function CatalogoContent() {
   const searchParams = useSearchParams();
-  const router = useRouter();
 
   const [products, setProducts] = useState<Product[]>([]);
   const [categories, setCategories] = useState<Category[]>([]);
@@ -29,12 +29,10 @@ export default function CatalogoPage() {
     sort: (searchParams.get("sort") as ProductFilters["sort"]) || "newest",
   });
 
-  // Load categories once
   useEffect(() => {
     fetchCategories().then(setCategories);
   }, []);
 
-  // Load products whenever filters change
   const load = useCallback(async () => {
     setLoading(true);
     const data = await fetchProducts(filters);
@@ -51,8 +49,6 @@ export default function CatalogoPage() {
   return (
     <main className="min-h-screen pt-28 pb-20 px-6">
       <div className="max-w-7xl mx-auto space-y-10">
-
-        {/* Page header */}
         <motion.div
           initial={{ opacity: 0, y: 16 }}
           animate={{ opacity: 1, y: 0 }}
@@ -70,7 +66,6 @@ export default function CatalogoPage() {
           </h1>
         </motion.div>
 
-        {/* Filters */}
         <motion.div
           initial={{ opacity: 0, y: 12 }}
           animate={{ opacity: 1, y: 0 }}
@@ -84,9 +79,16 @@ export default function CatalogoPage() {
           />
         </motion.div>
 
-        {/* Grid */}
         <ProductGrid products={products} loading={loading} />
       </div>
     </main>
+  );
+}
+
+export default function CatalogoPage() {
+  return (
+    <Suspense fallback={<div className="min-h-screen pt-28 px-6 text-terra-400">Cargando...</div>}>
+      <CatalogoContent />
+    </Suspense>
   );
 }

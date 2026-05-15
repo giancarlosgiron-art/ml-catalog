@@ -7,7 +7,7 @@ export async function getServerToken(): Promise<string | null> {
 
   const email = process.env.API_EMAIL;
   const password = process.env.API_PASSWORD;
-  const base = process.env.NEXT_PUBLIC_API_URL || "http://localhost:3001";
+  const base = "https://by-maria-lugo-production.up.railway.app";
 
   if (!email || !password) return null;
 

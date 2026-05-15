@@ -1,6 +1,6 @@
 import { Product, Category, TopProduct, ProductFilters } from "./types";
 
-const BASE_URL = process.env.NEXT_PUBLIC_API_URL || "http://localhost:3001";
+const BASE_URL = "https://by-maria-lugo-production.up.railway.app";
 const TOKEN_KEY = "ml_token";
 const TOKEN_EXPIRY_KEY = "ml_token_expiry";
 

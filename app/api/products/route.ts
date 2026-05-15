@@ -1,7 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { getServerToken } from "@/lib/serverToken";
 
-const BASE = process.env.NEXT_PUBLIC_API_URL || "http://localhost:3001";
+const BASE = "https://by-maria-lugo-production.up.railway.app";
 
 export async function GET(request: NextRequest) {
   const token = await getServerToken();

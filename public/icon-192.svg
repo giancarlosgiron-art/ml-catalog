@@ -1,0 +1,15 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 192 192" width="192" height="192">
+  <rect width="192" height="192" rx="32" fill="#A85A35"/>
+  <text
+    x="96"
+    y="130"
+    font-family="Georgia, 'Times New Roman', serif"
+    font-size="96"
+    font-style="italic"
+    font-weight="400"
+    fill="#FDF0D5"
+    text-anchor="middle"
+    letter-spacing="-4"
+  >ml</text>
+  <rect x="40" y="148" width="112" height="2" rx="1" fill="#C9A96E" opacity="0.8"/>
+</svg>

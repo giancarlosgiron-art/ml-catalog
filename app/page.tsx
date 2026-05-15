@@ -12,30 +12,30 @@ function isNew(createdAt: string) {
 }
 
 export default async function HomePage() {
-  const [allProducts, topRaw] = await Promise.all([
-    fetchProducts({ sort: "newest" }),
-    fetchTopProducts(),
-  ]);
+  let allProducts: Product[] = [];
+  let topRaw: { id: number }[] = [];
+
+  try {
+    [allProducts, topRaw] = await Promise.all([
+      fetchProducts({ sort: "newest" }),
+      fetchTopProducts(),
+    ]);
+  } catch (e) {
+    console.error("Error fetching products:", e);
+  }
 
   const topIds = new Set(topRaw.map((p) => p.id));
-
-  const bestsellers: Product[] = allProducts
-    .filter((p) => topIds.has(p.id))
-    .slice(0, 4);
-
-  const newArrivals: Product[] = allProducts
-    .filter((p) => isNew(p.created_at))
-    .slice(0, 7);
-
-  const featured: Product[] = allProducts
-    .filter((p) => p.status === "available")
-    .slice(0, 8);
+  const bestsellers = allProducts.filter((p) => topIds.has(p.id)).slice(0, 4);
+  const newArrivals = allProducts.filter((p) => isNew(p.created_at)).slice(0, 7);
+  const featured = allProducts.filter(
+    (p) => !topIds.has(p.id) && !isNew(p.created_at)
+  );
 
   return (
     <>
       <Hero />
-      <BestSellers products={bestsellers.length ? bestsellers : allProducts.slice(0, 4)} />
-      <NewArrivals products={newArrivals.length ? newArrivals : allProducts.slice(0, 7)} />
+      <BestSellers products={bestsellers} />
+      <NewArrivals products={newArrivals} />
       <FeaturedSection products={featured} />
     </>
   );

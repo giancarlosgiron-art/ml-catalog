@@ -1,6 +1,6 @@
 import { Product, Category, TopProduct, ProductFilters } from "./types";
 
-const BASE_URL = process.env.NEXT_PUBLIC_API_URL || "http://localhost:3001";
+const BASE_URL = process.env.API_URL || process.env.NEXT_PUBLIC_API_URL || "http://localhost:3001";
 const TOKEN_KEY = "ml_token";
 
 // ── server-side token cache ───────────────────────────────────────────────────

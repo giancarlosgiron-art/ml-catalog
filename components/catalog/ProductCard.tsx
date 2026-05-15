@@ -133,7 +133,7 @@ export default function ProductCard({ product, onQuickView, index = 0 }: Props) 
               )}
               {(product.country === "venezuela" || product.country === "both") && (product.price_eur ?? 0) > 0 && (
                 <span className="font-serif text-base font-medium text-terra-500">
-                  {formatEUR(product.price_eur)}
+                  {formatEUR(product.price_eur ?? 0)}
                 </span>
               )}
             </div>

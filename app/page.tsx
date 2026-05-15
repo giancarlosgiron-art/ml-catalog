@@ -1,7 +1,8 @@
-export const dynamic = "force-dynamic";
+"use client";
 
+import { useEffect, useState } from "react";
 import { fetchProducts, fetchTopProducts } from "@/lib/api";
-import { Product } from "@/lib/types";
+import { Product, TopProduct } from "@/lib/types";
 import Hero from "@/components/home/Hero";
 import BestSellers from "@/components/home/BestSellers";
 import NewArrivals from "@/components/home/NewArrivals";
@@ -11,18 +12,20 @@ function isNew(createdAt: string) {
   return (Date.now() - new Date(createdAt).getTime()) / 86_400_000 < 14;
 }
 
-export default async function HomePage() {
-  let allProducts: Product[] = [];
-  let topRaw: { id: number }[] = [];
-
-  try {
-    [allProducts, topRaw] = await Promise.all([
+export default function HomePage() {
+  const [allProducts, setAllProducts] = useState<Product[]>([]);
+  const [topRaw, setTopRaw] = useState<TopProduct[]>([]);
+  useEffect(() => {
+    Promise.all([
       fetchProducts({ sort: "newest" }),
       fetchTopProducts(),
-    ]);
-  } catch (e) {
-    console.error("Error fetching products:", e);
-  }
+    ])
+      .then(([products, top]) => {
+        setAllProducts(products);
+        setTopRaw(top);
+      })
+      .catch(console.error);
+  }, []);
 
   const topIds = new Set(topRaw.map((p) => p.id));
   const bestsellers = allProducts.filter((p) => topIds.has(p.id)).slice(0, 4);

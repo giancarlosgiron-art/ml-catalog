@@ -131,7 +131,7 @@ export default function ProductCard({ product, onQuickView, index = 0 }: Props) 
                   {formatCLP(product.sale_price)}
                 </span>
               )}
-              {(product.country === "venezuela" || product.country === "both") && product.price_eur && product.price_eur > 0 && (
+              {(product.country === "venezuela" || product.country === "both") && (product.price_eur ?? 0) > 0 && (
                 <span className="font-serif text-base font-medium text-terra-500">
                   {formatEUR(product.price_eur)}
                 </span>

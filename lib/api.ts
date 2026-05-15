@@ -1,6 +1,10 @@
 import { Product, Category, TopProduct, ProductFilters } from "./types";
 
-const BASE_URL = "https://by-maria-lugo-production.up.railway.app";
+// En desarrollo: NEXT_PUBLIC_API_URL=http://localhost:3001 en .env.local
+// En producción: si no está la variable, usa el backend de Railway como fallback seguro
+const BASE_URL =
+  process.env.NEXT_PUBLIC_API_URL ||
+  "https://by-maria-lugo-production.up.railway.app";
 const TOKEN_KEY = "ml_token";
 const TOKEN_EXPIRY_KEY = "ml_token_expiry";
 

@@ -10,6 +10,11 @@ const nextConfig: NextConfig = {
         port: "3001",
         pathname: "/**",
       },
+      {
+        protocol: "https",
+        hostname: "by-maria-lugo-production.up.railway.app",
+        pathname: "/**",
+      },
     ],
   },
 };

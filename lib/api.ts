@@ -2,10 +2,46 @@ import { Product, Category, TopProduct, ProductFilters } from "./types";
 
 const BASE_URL = process.env.NEXT_PUBLIC_API_URL || "http://localhost:3001";
 const TOKEN_KEY = "ml_token";
+const TOKEN_EXPIRY_KEY = "ml_token_expiry";
 
 const isClient = typeof window !== "undefined";
 
-// ── auth ────────────────────────────────────────────────────────────────────
+// ── client-side auto-login ────────────────────────────────────────────────────
+// Uses NEXT_PUBLIC_API_EMAIL / NEXT_PUBLIC_API_PASSWORD (visible in browser).
+// Token cached in localStorage with 6-day expiry.
+
+async function getClientToken(): Promise<string | null> {
+  // Return cached token if still valid
+  if (isClient) {
+    const cached = localStorage.getItem(TOKEN_KEY);
+    const expiry = Number(localStorage.getItem(TOKEN_EXPIRY_KEY) || 0);
+    if (cached && Date.now() < expiry) return cached;
+  }
+
+  const email = process.env.NEXT_PUBLIC_API_EMAIL;
+  const password = process.env.NEXT_PUBLIC_API_PASSWORD;
+  if (!email || !password) return null;
+
+  try {
+    const res = await fetch(`${BASE_URL}/api/auth/login`, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ email, password }),
+    });
+    if (!res.ok) return null;
+    const data = await res.json();
+    const token = data.token as string;
+    if (isClient) {
+      localStorage.setItem(TOKEN_KEY, token);
+      localStorage.setItem(TOKEN_EXPIRY_KEY, String(Date.now() + 6 * 24 * 60 * 60 * 1000));
+    }
+    return token;
+  } catch {
+    return null;
+  }
+}
+
+// ── auth (manual login) ───────────────────────────────────────────────────────
 
 export async function login(email: string, password: string): Promise<string> {
   const res = await fetch(`${BASE_URL}/api/auth/login`, {
@@ -15,7 +51,10 @@ export async function login(email: string, password: string): Promise<string> {
   });
   if (!res.ok) throw new Error("Credenciales inválidas");
   const data = await res.json();
-  if (isClient) localStorage.setItem(TOKEN_KEY, data.token);
+  if (isClient) {
+    localStorage.setItem(TOKEN_KEY, data.token);
+    localStorage.setItem(TOKEN_EXPIRY_KEY, String(Date.now() + 6 * 24 * 60 * 60 * 1000));
+  }
   return data.token;
 }
 
@@ -25,12 +64,15 @@ export function getToken(): string | null {
 }
 
 export function logout() {
-  if (isClient) localStorage.removeItem(TOKEN_KEY);
+  if (isClient) {
+    localStorage.removeItem(TOKEN_KEY);
+    localStorage.removeItem(TOKEN_EXPIRY_KEY);
+  }
 }
 
-// ── products ─────────────────────────────────────────────────────────────────
-// On the client → calls /api/products (Next.js proxy route, server handles auth)
-// On the server → calls backend directly via lib/serverToken (Server Components)
+// ── products ──────────────────────────────────────────────────────────────────
+// Client: fetch directly to BASE_URL using auto-login token.
+// Server (product detail page): fetch directly using server-only serverToken.
 
 export async function fetchProducts(filters: ProductFilters = {}): Promise<Product[]> {
   const params = new URLSearchParams();
@@ -55,17 +97,10 @@ export async function fetchProducts(filters: ProductFilters = {}): Promise<Produ
     if (order) params.set("order", order);
   }
 
-  if (isClient) {
-    // Browser → use Next.js proxy route (auth handled server-side)
-    const res = await fetch(`/api/products?${params}`);
-    if (!res.ok) return [];
-    const data = await res.json();
-    return (data.products || data) as Product[];
-  }
+  const token = isClient
+    ? await getClientToken()
+    : await (await import("./serverToken")).getServerToken();
 
-  // Server Component → call backend directly with server token
-  const { getServerToken } = await import("./serverToken");
-  const token = await getServerToken();
   const headers: HeadersInit = token ? { Authorization: `Bearer ${token}` } : {};
   const res = await fetch(`${BASE_URL}/api/products?${params}`, {
     headers,
@@ -77,7 +112,7 @@ export async function fetchProducts(filters: ProductFilters = {}): Promise<Produ
 }
 
 export async function fetchProduct(id: number): Promise<Product | null> {
-  // Product detail page stays as Server Component — direct backend call
+  // Always called from Server Component (product detail page)
   const { getServerToken } = await import("./serverToken");
   const token = await getServerToken();
   const headers: HeadersInit = token ? { Authorization: `Bearer ${token}` } : {};
@@ -91,14 +126,10 @@ export async function fetchProduct(id: number): Promise<Product | null> {
 }
 
 export async function fetchCategories(): Promise<Category[]> {
-  if (isClient) {
-    const res = await fetch(`/api/categories`);
-    if (!res.ok) return [];
-    return res.json();
-  }
+  const token = isClient
+    ? await getClientToken()
+    : await (await import("./serverToken")).getServerToken();
 
-  const { getServerToken } = await import("./serverToken");
-  const token = await getServerToken();
   const headers: HeadersInit = token ? { Authorization: `Bearer ${token}` } : {};
   const res = await fetch(`${BASE_URL}/api/products/categories`, {
     headers,
@@ -109,14 +140,10 @@ export async function fetchCategories(): Promise<Category[]> {
 }
 
 export async function fetchTopProducts(): Promise<TopProduct[]> {
-  if (isClient) {
-    const res = await fetch(`/api/top-products`);
-    if (!res.ok) return [];
-    return res.json();
-  }
+  const token = isClient
+    ? await getClientToken()
+    : await (await import("./serverToken")).getServerToken();
 
-  const { getServerToken } = await import("./serverToken");
-  const token = await getServerToken();
   const headers: HeadersInit = token ? { Authorization: `Bearer ${token}` } : {};
   const res = await fetch(`${BASE_URL}/api/dashboard/top-products`, {
     headers,
@@ -126,7 +153,7 @@ export async function fetchTopProducts(): Promise<TopProduct[]> {
   return res.json();
 }
 
-// ── image url ────────────────────────────────────────────────────────────────
+// ── image url ─────────────────────────────────────────────────────────────────
 
 export function imageUrl(path: string | null | undefined): string {
   if (!path) return "/placeholder-product.jpg";

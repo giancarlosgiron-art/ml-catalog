@@ -1,3 +1,5 @@
+export const dynamic = "force-dynamic";
+
 import { fetchProducts, fetchTopProducts } from "@/lib/api";
 import { Product } from "@/lib/types";
 import Hero from "@/components/home/Hero";

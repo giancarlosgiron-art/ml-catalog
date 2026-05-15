@@ -11,11 +11,19 @@ interface Props {
   params: Promise<{ id: string }>;
 }
 
-function formatPrice(price: number) {
+function formatCLP(price: number) {
   return new Intl.NumberFormat("es-CL", {
     style: "currency",
     currency: "CLP",
     maximumFractionDigits: 0,
+  }).format(price);
+}
+
+function formatEUR(price: number) {
+  return new Intl.NumberFormat("es-ES", {
+    style: "currency",
+    currency: "EUR",
+    maximumFractionDigits: 2,
   }).format(price);
 }
 
@@ -82,10 +90,17 @@ export default async function ProductPage({ params }: Props) {
             </h1>
 
             {/* Price */}
-            <div className="flex items-baseline gap-4">
-              <span className="font-serif text-4xl text-terra-600">
-                {formatPrice(product.sale_price)}
-              </span>
+            <div className="flex flex-wrap items-baseline gap-3">
+              {(product.country === "chile" || product.country === "both") && product.sale_price > 0 && (
+                <span className="font-serif text-4xl text-terra-600">
+                  {formatCLP(product.sale_price)}
+                </span>
+              )}
+              {(product.country === "venezuela" || product.country === "both") && product.price_eur && product.price_eur > 0 && (
+                <span className="font-serif text-3xl text-terra-400">
+                  {formatEUR(product.price_eur)}
+                </span>
+              )}
             </div>
 
             {/* Description */}

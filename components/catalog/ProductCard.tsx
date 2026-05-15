@@ -17,11 +17,19 @@ interface Props {
   index?: number;
 }
 
-function formatPrice(price: number) {
+function formatCLP(price: number) {
   return new Intl.NumberFormat("es-CL", {
     style: "currency",
     currency: "CLP",
     maximumFractionDigits: 0,
+  }).format(price);
+}
+
+function formatEUR(price: number) {
+  return new Intl.NumberFormat("es-ES", {
+    style: "currency",
+    currency: "EUR",
+    maximumFractionDigits: 2,
   }).format(price);
 }
 
@@ -117,9 +125,18 @@ export default function ProductCard({ product, onQuickView, index = 0 }: Props) 
 
           {/* Price + stock row */}
           <div className="flex items-center justify-between pt-1">
-            <span className="font-serif text-lg font-medium text-terra-700">
-              {formatPrice(product.sale_price)}
-            </span>
+            <div className="flex flex-col gap-0.5">
+              {(product.country === "chile" || product.country === "both") && product.sale_price > 0 && (
+                <span className="font-serif text-lg font-medium text-terra-700">
+                  {formatCLP(product.sale_price)}
+                </span>
+              )}
+              {(product.country === "venezuela" || product.country === "both") && product.price_eur && product.price_eur > 0 && (
+                <span className="font-serif text-base font-medium text-terra-500">
+                  {formatEUR(product.price_eur)}
+                </span>
+              )}
+            </div>
             <StockBadge status={product.status} />
           </div>
 

@@ -15,7 +15,8 @@ export interface Product {
   category_id: number;
   category_name?: string;
   cost_price: number;
-  sale_price: number;
+  sale_price: number;   // CLP (Chile)
+  price_eur?: number;   // EUR (Venezuela)
   stock: number;
   min_stock: number;
   status: StockStatus;
